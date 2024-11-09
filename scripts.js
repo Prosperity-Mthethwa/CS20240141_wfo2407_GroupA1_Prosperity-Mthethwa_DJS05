@@ -1,29 +1,53 @@
 //created function to hold the state tree
 function createStore(reducer) {
+    // Declare a variable 'state' to hold the current state of the store
     var state;
+    // Declare an array 'listeners' to hold the subscription functions
     var listeners = [];
 
+    /**
+     * Returns the current state of the store.
+     * @returns {*} The current state.
+     */
     function getState() {
         return state;
     }
-}
 
-//dispatches action to update state of the store 
-function dispatch(action) {
-    state = reducer(state, action); // state updator by calling reducer current state and action
-    for (var i = 0; i < listeners.length; i++) {
-        listeners[i]();
+    /**
+     * Dispatches an action to update the state of the store.
+     * @param {Object} action - An action object with a 'type' property and optionally other properties.
+     */
+    function dispatch(action) {
+        // Update the state by calling the reducer function with the current state and action
+        state = reducer(state, action);
+        // Iterate over each listener and invoke it to notify subscribers about the state change
+        for (var i = 0; i < listeners.length; i++) {
+            listeners[i]();
+        }
     }
+
+    /**
+     * Adds a new listener to the store.
+     * @param {Function} callback - A callback function to be called when the state changes.
+     */
+    function subscribe(callback) {
+        // Add the callback function to the listeners array
+        listeners.push(callback);
+    }
+
+    // Initialize the state by dispatching an empty action
+    dispatch({});
+
+    // Return an object containing methods to interact with the store: getState, dispatch, and subscribe
+    return { getState: getState, dispatch: dispatch, subscribe: subscribe };
 }
 
-function subscribe(callback) {
-    listeners.push(callback);
-
-    dispatch({}); //initializes the state by dispatching an empty action.
-
-    return { getState: getState, dispatch: dispatch, subcribe: subscribe };
-}
-
+/**
+ * A reducer function to manage state updates for a counter.
+ * @param {Object} [state={ count: 0 }] - The current state of the counter.
+ * @param {Object} action - An action object with a 'type' property.
+ * @returns {Object} The next state of the counter.
+ */
 function counterReducer(state = { count: 0 }, action) {
     // Switch based on the action type to determine how to update the state
     switch (action.type) {
@@ -39,15 +63,22 @@ function counterReducer(state = { count: 0 }, action) {
         default:
             // If the action type is unknown, return the current state without modification
             return state;
-    };
+    }
 }
 
+// Create the store by passing the reducer function to the createStore function
 var store = createStore(counterReducer);
 
-store.subscribe(function(){
-    console,log("state:", store.getState());
+// Subscribe to state changes and log them
+/**
+ * Logs the current state whenever it changes.
+ */
+store.subscribe(function() {
+    console.log("State:", store.getState());
 });
 
+// Assuming HTML buttons with ids 'increment', 'decrement', 'reset' exist,
+// Attach event listeners to HTML buttons to dispatch actions when clicked
 document.getElementById('increment').addEventListener('click', function() {
     store.dispatch({ type: 'ADD' });
 });
